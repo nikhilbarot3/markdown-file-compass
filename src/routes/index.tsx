@@ -168,10 +168,10 @@ function Dashboard() {
                 <button
                   type="button"
                   disabled={loading}
-                  onClick={() => send(undefined, "Please analyse my prescription.")}
+                  onClick={() => send(undefined, "Please check my prescription against my plan and nearby suppliers.")}
                   className="h-12 flex-1 rounded-lg bg-primary px-5 font-bold text-primary-foreground hover:opacity-90 disabled:opacity-50"
                 >
-                  {loading ? "Analysing…" : "Analyse prescription"}
+                  {loading ? "Checking…" : "Submit"}
                 </button>
                 <button type="button" onClick={() => setFile(null)} className="text-sm text-muted-foreground underline">
                   Remove file
