@@ -27,6 +27,7 @@ export interface Supplier {
   name: string;
   address: string;
   qty: number;
+  in_network?: boolean | undefined;
 }
 export interface ChatResponse {
   item: string;
@@ -34,6 +35,8 @@ export interface ChatResponse {
   score: number;
   policy_facts: PolicyFact[];
   suppliers: Supplier[];
+  price?: number | undefined;
+  plan_limit?: number | undefined;
 }
 
 export interface Check {
@@ -63,9 +66,9 @@ export function scoreChecks(
   planId: PlanId,
   s: Supplier,
 ): { checks: Check[]; score: number; inNetwork: boolean } {
-  const price = itemPrice(res.item);
-  const limit = planById(planId).limit;
-  const inNetwork = !OUT_OF_NETWORK[planId].includes(s.name);
+  const price = res.price ?? itemPrice(res.item);
+  const limit = res.plan_limit ?? planById(planId).limit;
+  const inNetwork = s.in_network ?? !OUT_OF_NETWORK[planId].includes(s.name);
   const checks: Check[] = [
     { label: "Prescription read clearly (item recognized)", passed: !!res.item },
     { label: "Plan rule found in the policy documents", passed: res.policy_facts.length > 0 },
@@ -139,7 +142,7 @@ export function sampleResponse(planId: PlanId, message: string): ChatResponse {
 
 export function buildPacket(res: ChatResponse, planId: PlanId, best?: RankedSupplier): string {
   const plan = planById(planId);
-  const price = itemPrice(res.item);
+  const price = res.price ?? itemPrice(res.item);
   return [
     "Coverage Pre-Check packet (sample data)",
     `Plan: ${plan.name}`,
