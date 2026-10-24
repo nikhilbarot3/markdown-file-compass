@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Coverage Pre-Check scoring, sample data and packet text live in src/lib/precheck.ts as plain code (no AI); the UI falls back to sample responses when VITE_BACKEND_URL is unset so the demo works offline.
