@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { analyzePrescription } from "@/lib/analyze.functions";
 import { useMemo, useRef, useState } from "react";
 import {
   PLANS,
@@ -13,7 +15,6 @@ import {
   itemPrice,
   planById,
 } from "@/lib/precheck";
-import { dbResponse } from "@/lib/precheck-db";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -57,6 +58,7 @@ function Dashboard() {
   const [result, setResult] = useState<ChatResponse | null>(null);
   const [copied, setCopied] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const analyze = useServerFn(analyzePrescription);
 
   const ranked = useMemo(() => (result ? rankSuppliers(result, planId) : []), [result, planId]);
   const best = ranked.find((s) => s.inNetwork && s.inStock) ?? ranked[0];
@@ -88,13 +90,19 @@ function Dashboard() {
         if (!r.ok) throw new Error(`The service returned an error (${r.status}).`);
         data = json as ChatResponse;
       } else {
-        await new Promise((r) => setTimeout(r, 900));
-        if (!file && !detectItem(message)) {
-          setMsgs((m) => [...m, { role: "assistant", text: demoChatReply(message) }]);
+        const res = await analyze({
+          data: {
+            planId,
+            message,
+            history: msgs.slice(-6),
+            file: file ? { name: file.name, mime: file.type || "application/octet-stream", b64: await toBase64(file) } : undefined,
+          },
+        });
+        if (res.kind === "chat") {
+          setMsgs((m) => [...m, { role: "assistant", text: res.reply }]);
           return;
         }
-        const base = sampleResponse(planId, message);
-        data = await dbResponse(planId, base.item, base);
+        data = res.response;
       }
       setResult(data);
       setMsgs((m) => [...m, { role: "assistant", text: data.answer }]);
@@ -126,7 +134,7 @@ function Dashboard() {
             <p className="text-sm text-muted-foreground">Medical equipment coverage, explained.</p>
           </div>
           <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold text-secondary-foreground">
-            {BACKEND_URL ? "Live backend" : "Demo mode (sample responses)"}
+            {BACKEND_URL ? "Live backend" : "Powered by Gemma (open-weight)"}
           </span>
         </div>
       </header>
