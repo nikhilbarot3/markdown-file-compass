@@ -60,10 +60,10 @@ function Dashboard() {
   const ranked = useMemo(() => (result ? rankSuppliers(result, planId) : []), [result, planId]);
   const best = ranked.find((s) => s.inNetwork && s.inStock) ?? ranked[0];
 
-  async function send(e: React.FormEvent) {
-    e.preventDefault();
+  async function send(e?: React.FormEvent, preset?: string) {
+    e?.preventDefault();
     setError(null);
-    const message = input.trim() || (file ? "Please read my prescription." : "");
+    const message = preset ?? (input.trim() || (file ? "Please read my prescription." : ""));
     if (!message) return setError("Type a message or upload a prescription.");
     if (message.length > MAX_MSG) return setError(`Message must be under ${MAX_MSG} characters.`);
     if (file && file.size > MAX_FILE) return setError("File must be under 3 MB.");
@@ -164,9 +164,19 @@ function Dashboard() {
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
             {file && (
-              <button type="button" onClick={() => setFile(null)} className="mt-1 text-sm text-muted-foreground underline">
-                Remove file
-              </button>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => send(undefined, "Please analyse my prescription.")}
+                  className="h-12 flex-1 rounded-lg bg-primary px-5 font-bold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                >
+                  {loading ? "Analysing…" : "Analyse prescription"}
+                </button>
+                <button type="button" onClick={() => setFile(null)} className="text-sm text-muted-foreground underline">
+                  Remove file
+                </button>
+              </div>
             )}
           </div>
 
