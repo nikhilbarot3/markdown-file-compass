@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { ChatResponse } from "./precheck";
+import type { Database } from "@/integrations/supabase/types";
 
 const Input = z.object({
   planId: z.enum(["bluecare_ppo", "metro_medicaid"]),
@@ -38,7 +39,7 @@ export const analyzePrescription = createServerFn({ method: "POST" })
     const { createClient } = await import("@supabase/supabase-js");
 
     const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
-    const db = createClient(process.env["SUPABASE_URL"]!, key, {
+    const db = createClient<Database>(process.env["SUPABASE_URL"]!, key, {
       auth: { persistSession: false },
       global: {
         fetch: (input, init) => {
