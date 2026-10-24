@@ -13,6 +13,7 @@ import {
   itemPrice,
   planById,
 } from "@/lib/precheck";
+import { dbResponse } from "@/lib/precheck-db";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -92,7 +93,8 @@ function Dashboard() {
           setMsgs((m) => [...m, { role: "assistant", text: demoChatReply(message) }]);
           return;
         }
-        data = sampleResponse(planId, message);
+        const base = sampleResponse(planId, message);
+        data = await dbResponse(planId, base.item, base);
       }
       setResult(data);
       setMsgs((m) => [...m, { role: "assistant", text: data.answer }]);
@@ -111,7 +113,8 @@ function Dashboard() {
   }
 
   const plan = planById(planId);
-  const price = result ? itemPrice(result.item) : undefined;
+  const price = result ? (result.price ?? itemPrice(result.item)) : undefined;
+  const limit = result?.plan_limit ?? plan.limit;
   const needsPA = result?.policy_facts.some((f) => factResult(f) === "Action needed");
 
   return (
@@ -261,16 +264,16 @@ function Dashboard() {
               {price !== undefined && (
                 <Card title="Plan limit">
                   <p className="mb-2 text-sm">
-                    <strong>${price}</strong> of <strong>${plan.limit}</strong> annual equipment limit for this item (sample)
+                    <strong>${price}</strong> of <strong>${limit}</strong> annual equipment limit for this item (sample)
                     {" — "}
-                    <span className={price <= plan.limit ? "text-success-foreground" : "text-destructive"}>
-                      {price <= plan.limit ? "Within plan limit" : "Over plan limit"}
+                    <span className={price <= limit ? "text-success-foreground" : "text-destructive"}>
+                      {price <= limit ? "Within plan limit" : "Over plan limit"}
                     </span>
                   </p>
-                  <div className="h-4 w-full overflow-hidden rounded-full bg-muted" role="meter" aria-valuemin={0} aria-valuemax={plan.limit} aria-valuenow={price}>
+                  <div className="h-4 w-full overflow-hidden rounded-full bg-muted" role="meter" aria-valuemin={0} aria-valuemax={limit} aria-valuenow={price}>
                     <div
-                      className={`h-full rounded-full ${price <= plan.limit ? "bg-primary" : "bg-destructive"}`}
-                      style={{ width: `${Math.min(100, (price / plan.limit) * 100)}%` }}
+                      className={`h-full rounded-full ${price <= limit ? "bg-primary" : "bg-destructive"}`}
+                      style={{ width: `${Math.min(100, (price / limit) * 100)}%` }}
                     />
                   </div>
                 </Card>
