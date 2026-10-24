@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { analyzePrescription } from "@/lib/analyze.functions";
 import { useMemo, useRef, useState } from "react";
 import {
   PLANS,
@@ -57,6 +59,7 @@ function Dashboard() {
   const [result, setResult] = useState<ChatResponse | null>(null);
   const [copied, setCopied] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const analyze = useServerFn(analyzePrescription);
 
   const ranked = useMemo(() => (result ? rankSuppliers(result, planId) : []), [result, planId]);
   const best = ranked.find((s) => s.inNetwork && s.inStock) ?? ranked[0];
