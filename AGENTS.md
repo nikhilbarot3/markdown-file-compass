@@ -10,4 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Coverage Pre-Check scoring, sample data and packet text live in src/lib/precheck.ts as plain code (no AI); the UI falls back to sample responses when VITE_BACKEND_URL is unset so the demo works offline.
-- Plans, equipment items, suppliers, stock and network membership live in Lovable Cloud tables (public read-only); demo mode reads them via src/lib/precheck-db.ts, falling back to precheck.ts constants.
+- Plans, policy sections, equipment items, suppliers, stock and network membership live in Lovable Cloud tables (public read-only); demo mode reads them via src/lib/precheck-db.ts, falling back to precheck.ts constants.
