@@ -259,7 +259,7 @@ function Dashboard() {
                         return (
                           <tr key={f.section} className="border-t border-border">
                             <td className="py-3 pr-3">{f.text}</td>
-                            <td className="py-3 pr-3 font-bold">§ {f.section}</td>
+                            <td className="py-3 pr-3 font-bold">{f.section}</td>
                             <td className="py-3"><Badge tone={r === "Action needed" ? "warn" : "ok"}>{r}</Badge></td>
                           </tr>
                         );
