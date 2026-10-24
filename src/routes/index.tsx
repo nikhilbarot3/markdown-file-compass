@@ -88,13 +88,19 @@ function Dashboard() {
         if (!r.ok) throw new Error(`The service returned an error (${r.status}).`);
         data = json as ChatResponse;
       } else {
-        await new Promise((r) => setTimeout(r, 900));
-        if (!file && !detectItem(message)) {
-          setMsgs((m) => [...m, { role: "assistant", text: demoChatReply(message) }]);
+        const res = await analyze({
+          data: {
+            planId,
+            message,
+            history: msgs.slice(-6),
+            file: file ? { name: file.name, mime: file.type || "application/octet-stream", b64: await toBase64(file) } : undefined,
+          },
+        });
+        if (res.kind === "chat") {
+          setMsgs((m) => [...m, { role: "assistant", text: res.reply }]);
           return;
         }
-        const base = sampleResponse(planId, message);
-        data = await dbResponse(planId, base.item, base);
+        data = res.response;
       }
       setResult(data);
       setMsgs((m) => [...m, { role: "assistant", text: data.answer }]);
