@@ -62,12 +62,22 @@ export const analyzePrescription = createServerFn({ method: "POST" })
       { type: "text", text: data.message || "Please read my prescription." },
     ];
     if (data.file) {
-      const url = `data:${data.file.mime};base64,${data.file.b64}`;
-      userParts.push(
-        data.file.mime === "application/pdf"
-          ? { type: "file", file: { filename: data.file.name, file_data: url } }
-          : { type: "image_url", image_url: { url } },
-      );
+      if (data.file.mime === "application/pdf") {
+        // Extract text from the PDF server-side, then give it to Gemma.
+        const { extractText, getDocumentProxy } = await import("unpdf");
+        const bytes = Uint8Array.from(atob(data.file.b64), (c) => c.charCodeAt(0));
+        const pdf = await getDocumentProxy(bytes);
+        const { text } = await extractText(pdf, { mergePages: true });
+        const clean = String(text).trim().slice(0, 4000);
+        userParts.push({
+          type: "text",
+          text: clean
+            ? `Prescription PDF text (${data.file.name}):\n${clean}`
+            : `The attached PDF (${data.file.name}) has no readable text (it may be a scanned image).`,
+        });
+      } else {
+        userParts.push({ type: "image_url", image_url: { url: `data:${data.file.mime};base64,${data.file.b64}` } });
+      }
     }
     const extractRaw = await callGemma(
       [

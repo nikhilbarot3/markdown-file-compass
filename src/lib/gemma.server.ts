@@ -24,7 +24,6 @@ export async function callGemma(messages: GemmaMessage[], maxTokens = 300, json 
       temperature: 0.2,
       messages,
       ...(json ? { response_format: { type: "json_object" } } : {}),
-      plugins: [{ id: "file-parser", pdf: { engine: "pdf-text" } }],
     }),
   });
   const body = (await res.json().catch(() => ({}))) as {

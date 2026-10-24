@@ -134,7 +134,7 @@ function Dashboard() {
             <p className="text-sm text-muted-foreground">Medical equipment coverage, explained.</p>
           </div>
           <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold text-secondary-foreground">
-            {BACKEND_URL ? "Live backend" : "Demo mode (sample responses)"}
+            {BACKEND_URL ? "Live backend" : "Powered by Gemma (open-weight)"}
           </span>
         </div>
       </header>
