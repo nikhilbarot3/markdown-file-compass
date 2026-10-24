@@ -15,11 +15,26 @@ export async function dbResponse(planId: PlanId, itemName: string, base: ChatRes
     supabase.from("supplier_networks").select("supplier_id").eq("plan_id", planId),
   ]);
   if (e3 || e4) throw new Error("Couldn't load supplier data.");
+  const { data: sections, error: e5 } = await supabase
+    .from("policy_sections")
+    .select("section, body, item_id")
+    .eq("plan_id", planId)
+    .or(`item_id.is.null,item_id.eq.${item.id}`)
+    .order("section");
+  if (e5) throw new Error("Couldn't load policy sections.");
+  const facts = (sections ?? []).map((r) => ({ section: r.section, text: r.body }));
+  const needsPA = (sections ?? []).find((r) => r.item_id === item.id);
+  const planName = plan?.name ?? planId;
+  const answer = needsPA
+    ? `Your ${item.name} is likely covered under ${planName} (Section 4.2), but it needs prior authorization first (Section ${needsPA.section}). Ask your doctor's office to send the prescription with the authorization form.`
+    : `Your ${item.name} is likely covered under ${planName} (Section 4.2) and does not need prior authorization. Use an in-network supplier (Section 2.1).`;
   const inNet = new Set((nets ?? []).map((n) => n.supplier_id));
 
   return {
     ...base,
     item: item.name,
+    answer,
+    policy_facts: facts.length ? facts : base.policy_facts,
     price: Number(item.price),
     plan_limit: plan ? Number(plan.annual_limit) : undefined,
     suppliers: (stock ?? [])
