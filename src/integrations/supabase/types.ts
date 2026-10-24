@@ -59,6 +59,48 @@ export type Database = {
         }
         Relationships: []
       }
+      policy_sections: {
+        Row: {
+          body: string
+          id: string
+          item_id: string | null
+          plan_id: string
+          section: string
+          title: string
+        }
+        Insert: {
+          body: string
+          id?: string
+          item_id?: string | null
+          plan_id: string
+          section: string
+          title: string
+        }
+        Update: {
+          body?: string
+          id?: string
+          item_id?: string | null
+          plan_id?: string
+          section?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "policy_sections_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_sections_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_networks: {
         Row: {
           plan_id: string
