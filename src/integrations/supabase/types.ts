@@ -14,7 +14,138 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      equipment_items: {
+        Row: {
+          category: string
+          hcpcs_code: string | null
+          id: string
+          material: string | null
+          name: string
+          price: number
+        }
+        Insert: {
+          category: string
+          hcpcs_code?: string | null
+          id: string
+          material?: string | null
+          name: string
+          price: number
+        }
+        Update: {
+          category?: string
+          hcpcs_code?: string | null
+          id?: string
+          material?: string | null
+          name?: string
+          price?: number
+        }
+        Relationships: []
+      }
+      plans: {
+        Row: {
+          annual_limit: number
+          id: string
+          name: string
+        }
+        Insert: {
+          annual_limit: number
+          id: string
+          name: string
+        }
+        Update: {
+          annual_limit?: number
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      supplier_networks: {
+        Row: {
+          plan_id: string
+          supplier_id: string
+        }
+        Insert: {
+          plan_id: string
+          supplier_id: string
+        }
+        Update: {
+          plan_id?: string
+          supplier_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_networks_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_networks_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplier_stock: {
+        Row: {
+          item_id: string
+          qty: number
+          supplier_id: string
+        }
+        Insert: {
+          item_id: string
+          qty?: number
+          supplier_id: string
+        }
+        Update: {
+          item_id?: string
+          qty?: number
+          supplier_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_stock_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_stock_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          address: string
+          area: string | null
+          id: string
+          name: string
+          phone: string | null
+        }
+        Insert: {
+          address: string
+          area?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+        }
+        Update: {
+          address?: string
+          area?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
