@@ -17,3 +17,9 @@ describe("match score", () => {
     expect(r[0].checks[3].passed).toBe(false);
   });
 });
+
+import { detectItem } from "./precheck";
+describe("item detection", () => {
+  it("'hi' names no item", () => expect(detectItem("hi")).toBeNull());
+  it("finds back brace", () => expect(detectItem("I need a back brace")).toBe("back brace"));
+});

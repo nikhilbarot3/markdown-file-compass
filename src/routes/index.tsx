@@ -8,6 +8,8 @@ import {
   factResult,
   sampleResponse,
   buildPacket,
+  detectItem,
+  demoChatReply,
   itemPrice,
   planById,
 } from "@/lib/precheck";
@@ -86,6 +88,10 @@ function Dashboard() {
         data = json as ChatResponse;
       } else {
         await new Promise((r) => setTimeout(r, 900));
+        if (!file && !detectItem(message)) {
+          setMsgs((m) => [...m, { role: "assistant", text: demoChatReply(message) }]);
+          return;
+        }
         data = sampleResponse(planId, message);
       }
       setResult(data);
