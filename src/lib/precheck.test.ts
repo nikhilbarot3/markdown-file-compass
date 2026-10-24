@@ -16,6 +16,17 @@ describe("match score", () => {
     const r = rankSuppliers(sampleResponse("bluecare_ppo", "cpap"), "bluecare_ppo");
     expect(r[0]!.checks[3]!.passed).toBe(false);
   });
+  it("a supplier with no stock scores lower than the same supplier in stock", () => {
+    const res = sampleResponse("metro_medicaid", "walker");
+    const stocked = rankSuppliers(res, "metro_medicaid")[0]!;
+    const noStock = rankSuppliers(
+      { ...res, suppliers: [{ ...stocked, qty: 0 }] },
+      "metro_medicaid",
+    )[0]!;
+    expect(noStock.inStock).toBe(false);
+    expect(noStock.reason).toContain("Out of stock");
+    expect(noStock.score).toBeLessThan(stocked.score);
+  });
 });
 
 import { detectItem } from "./precheck";
