@@ -96,9 +96,28 @@ export function factResult(f: PolicyFact): "Met" | "Action needed" | "Within lim
   return "Met";
 }
 
-export function sampleResponse(planId: PlanId, message: string): ChatResponse {
+/** Finds a known equipment item in free text, or null if none is mentioned. */
+export function detectItem(message: string): string | null {
   const m = message.toLowerCase();
-  const item = m.includes("walker") ? "walker" : m.includes("cpap") ? "CPAP" : "back brace";
+  if (/\bwalker\b/.test(m)) return "walker";
+  if (/\bc-?pap\b/.test(m)) return "CPAP";
+  if (/back\s*brace|lumbar|brace/.test(m)) return "back brace";
+  return null;
+}
+
+/** Conversational demo reply for messages that don't name an item. */
+export function demoChatReply(message: string): string {
+  const m = message.toLowerCase().trim();
+  if (/^(hi|hello|hey|hiya|good (morning|afternoon|evening))\b/.test(m))
+    return "Hi there! I can help you check whether medical equipment is likely covered by your plan. What do you need — for example a back brace, a walker, or a CPAP? You can also upload your prescription.";
+  if (/thank/.test(m)) return "You're welcome! Let me know if you'd like to check another item.";
+  if (/help|what can you do|how/.test(m))
+    return "Pick your plan, then tell me the equipment you need or upload a photo of your prescription. I'll show the plan rules that apply, your plan limit, and nearby suppliers that have it in stock.";
+  return "I'm not sure which equipment you mean. In this demo I can check a back brace, a walker, or a CPAP — or upload your prescription and I'll read it.";
+}
+
+export function sampleResponse(planId: PlanId, message: string): ChatResponse {
+  const item = detectItem(message) ?? "back brace";
   const plan = planById(planId);
   return {
     item,
