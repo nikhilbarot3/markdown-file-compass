@@ -44,7 +44,7 @@ export interface Check {
 export interface RankedSupplier extends Supplier {
   inNetwork: boolean;
   inStock: boolean;
-  reason?: string;
+  reason?: string | undefined;
   score: number;
   checks: Check[];
 }

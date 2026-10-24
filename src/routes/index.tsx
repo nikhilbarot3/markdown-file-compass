@@ -29,7 +29,7 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
-const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/$/, "");
+const BACKEND_URL = (import.meta.env["VITE_BACKEND_URL"] as string | undefined)?.replace(/\/$/, "");
 const MAX_MSG = 2000;
 const MAX_FILE = 3 * 1024 * 1024;
 
