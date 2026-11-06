@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzePrescription } from "@/lib/analyze.functions";
+import { LangsmithDemo } from "@/components/langsmith-demo";
 import { useMemo, useRef, useState } from "react";
 import {
   PLANS,
@@ -230,6 +231,7 @@ function Dashboard() {
             </button>
           </form>
           {error && <p role="alert" className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
+          <LangsmithDemo />
         </section>
 
         {/* Right panel */}
