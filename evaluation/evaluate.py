@@ -13,12 +13,19 @@ os.environ.setdefault("RAGAS_DO_NOT_TRACK", "true")
 from langchain_core.outputs import Generation, LLMResult
 from ragas import SingleTurnSample
 from ragas.llms import BaseRagasLLM
-from ragas.metrics import Faithfulness, LLMContextRecall, FactualCorrectness
+from ragas.metrics import Faithfulness, LLMContextRecall, LLMContextPrecisionWithReference
 from ragas.run_config import RunConfig
-from contracts import summarize, validate_observation
+from contracts import summarize, validate_observation, relevant_fraction, citation_audit
 
 HERE = Path(__file__).resolve().parent
-NAMES = ["faithfulness", "context_recall", "factual_correctness"]
+NAMES = ["faithfulness", "context_recall", "context_precision"]
+
+
+class UnrankedContextPrecision(LLMContextPrecisionWithReference):
+    """RAGAS chunk relevance judgments, unranked aggregation for section-sorted UI."""
+    def _calculate_average_precision(self, verifications):
+        self.last_verifications = [v.model_dump() for v in verifications]
+        return relevant_fraction([v["verdict"] for v in self.last_verifications])
 
 
 class GatewayJudge(BaseRagasLLM):
@@ -43,7 +50,7 @@ async def run(args):
     load_dotenv(HERE.parent / ".env.local", override=False)
     observations = [json.loads(line) for line in args.input.read_text().splitlines() if line.strip()]
     judge = GatewayJudge(run_config=RunConfig(max_retries=0, timeout=180))
-    metrics = [Faithfulness(llm=judge), LLMContextRecall(llm=judge), FactualCorrectness(llm=judge)]
+    metrics = [Faithfulness(llm=judge), LLMContextRecall(llm=judge), UnrankedContextPrecision(llm=judge)]
     results = []
     args.output.parent.mkdir(parents=True, exist_ok=True)
     for row in observations:
@@ -53,16 +60,21 @@ async def run(args):
                 raise ValueError("Collection failed")
             validate_observation(row)
             policy = row["retrieved_contexts"]
+            result["citation_audit"] = citation_audit(row["response"], policy)
             sql = f"SQL facts (sample): equipment price ${row['price']}; plan annual limit ${row['plan_limit']}."
             for name, metric in zip(NAMES, metrics):
                 sample = SingleTurnSample(user_input=row["user_input"], response=row["response"],
-                    reference=row["policy_reference"] if name == "context_recall" else row["reference"],
-                    retrieved_contexts=policy if name == "context_recall" else policy + [sql])
+                    reference=row["policy_reference"],
+                    retrieved_contexts=policy + [sql] if name == "faithfulness" else policy)
                 try:
                     score = float(await metric.single_turn_ascore(sample, timeout=240))
                     if not math.isfinite(score):
                         raise ValueError("Nonfinite score")
                     result["scores"][name] = score
+                    if name == "context_precision":
+                        result["precision_evidence"] = [
+                            {"context": c, **v} for c, v in zip(policy, metric.last_verifications)
+                        ]
                 except Exception as error:
                     result["scores"][name] = None
                     result["errors"][name] = type(error).__name__
@@ -72,9 +84,14 @@ async def run(args):
         report = {"evaluated_at": datetime.now(timezone.utc).isoformat(), "ragas_version": version("ragas"),
                   "judge_model": "openai/gpt-6-astra", "dataset": str(args.input),
                   "summary": summarize(results, NAMES), "cases": results,
+                  "protocol": "v2: faithfulness, context recall, unranked context precision; no correctness F1",
+                  "context_precision_definition": "Relevant observed policy chunks / all observed policy chunks; RAGAS relevance judgments, custom unranked aggregation (not RAGAS ranked average precision).",
+                  "observation_mode": "Re-scoring saved actual UI observations; no new app answers generated.",
                   "limitations": ["Synthetic text cases, not clinical validation.",
                                   "Displayed policy facts are not an exact prompt trace.",
-                                  "Context precision omitted because displayed facts are section-sorted, not rank-ordered."]}
+                                  "Context precision is unranked; it does not measure retrieval ranking quality.",
+                                  "Citation audit checks ID presence, not semantic claim support.",
+                                  "Golden policy references are hand-authored, not independently insurer-validated."]}
         args.output.write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
         print(json.dumps(result))
     print(json.dumps(report["summary"], indent=2))

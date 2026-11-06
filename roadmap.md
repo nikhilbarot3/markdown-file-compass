@@ -7,3 +7,4 @@
 - [x] Store BlueCare PPO / Metro Medicaid policy sections in the database and show them as policy facts
 - [x] Add standalone RAGAS evaluation of live answers and retrieved policy facts (one live smoke case verified)
 - [x] Run all six sample cases against golden references and deliver presentation-ready benchmark analysis (raw scores labeled provisional due to judge citation mismatch)
+- [ ] Review citation mismatch, replace correctness F1 with context precision, and deliver revised six-case analysis
