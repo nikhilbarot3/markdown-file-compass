@@ -33,9 +33,13 @@ export async function callGemma(messages: GemmaMessage[], maxTokens = 300, json 
     choices?: { message?: { content?: string } }[];
     error?: { message?: string };
   };
-  if (!res.ok) throw new Error(`Gemma request failed (${res.status}): ${body.error?.message ?? "unknown error"}`);
-  observe?.({ providerRequestId: body.id, inputTokens: body.usage?.prompt_tokens,
-    outputTokens: body.usage?.completion_tokens, totalTokens: body.usage?.total_tokens });
+  if (!res.ok) throw new Error(`Gemma request failed (${res.status}).`);
+  observe?.({
+    ...(body.id ? { providerRequestId: body.id } : {}),
+    ...(body.usage?.prompt_tokens !== undefined ? { inputTokens: body.usage.prompt_tokens } : {}),
+    ...(body.usage?.completion_tokens !== undefined ? { outputTokens: body.usage.completion_tokens } : {}),
+    ...(body.usage?.total_tokens !== undefined ? { totalTokens: body.usage.total_tokens } : {}),
+  });
   return body.choices?.[0]?.message?.content?.trim() ?? "";
 }
 
