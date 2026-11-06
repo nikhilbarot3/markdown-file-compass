@@ -103,13 +103,27 @@ Respond ONLY with JSON: {"item": one of the known equipment names exactly, or nu
       };
     }
 
-    // 2) Retrieve the relevant policy sections for this plan (BM25 RAG).
+    // 2) Retrieve the relevant policy sections for this plan (hybrid RAG:
+    //    BM25 over keywords + dense-vector similarity, fused with RRF).
     const { data: sections } = await db
       .from("policy_sections")
-      .select("section, title, body, item_id")
+      .select("section, title, body, item_id, embedding")
       .eq("plan_id", data.planId);
     const query = `${item.name} ${ex.diagnosis ?? ""} coverage prior authorization annual limit network supplier`;
-    const top = retrieve(sections ?? [], query, item.id, 4);
+
+    const { generateEmbeddings } = await import("@lovable.dev/ai-gateway");
+    const chunks = (sections ?? []).map((s) => ({
+      ...s,
+      embedding: s.embedding ? (JSON.parse(s.embedding) as number[]) : null,
+    }));
+    let queryEmbedding: number[] | null = null;
+    try {
+      const emb = await generateEmbeddings({ model: "google/gemini-embedding-2", input: query });
+      queryEmbedding = emb.data[0]?.embedding ?? null;
+    } catch {
+      // Embeddings unavailable — fall back to BM25-only ranking.
+    }
+    const top = retrieveHybrid(chunks, query, queryEmbedding, item.id, 4);
     const context = buildContext(top, 3000);
 
     // 3) Gemma writes a plain-language answer grounded only in the retrieved excerpts.
