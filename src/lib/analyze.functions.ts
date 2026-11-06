@@ -35,7 +35,7 @@ export const analyzePrescription = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => Input.parse(d))
   .handler(async ({ data }): Promise<AnalyzeResult> => {
     const { callGemma, parseJson } = await import("./gemma.server");
-    const { retrieve, buildContext } = await import("./rag");
+    const { retrieveHybrid, buildContext } = await import("./rag");
     const { createClient } = await import("@supabase/supabase-js");
 
     const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;

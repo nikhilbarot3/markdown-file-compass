@@ -35,7 +35,7 @@ describe("item detection", () => {
   it("finds back brace", () => expect(detectItem("I need a back brace")).toBe("back brace"));
 });
 
-import { retrieve } from "./rag";
+import { retrieve, retrieveHybrid, cosine } from "./rag";
 describe("policy retrieval", () => {
   const chunks = [
     { section: "4.5", title: "Prior authorization", body: "A back brace needs prior authorization", item_id: "back_brace" },
