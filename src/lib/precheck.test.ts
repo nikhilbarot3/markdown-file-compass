@@ -63,7 +63,7 @@ describe("hybrid retrieval", () => {
     expect(cosine([1, 0], [0, 1])).toBe(0);
   });
   it("semantic match ranks first even without keyword overlap", () => {
-    const r = retrieveHybrid(chunks, "spending cap", [0, 1, 0], null);
+    const r = retrieveHybrid(chunks, "spending cap", [0, 1, 0], null, 1);
     expect(r[0]!.section).toBe("4.7");
   });
   it("still excludes another item's rule", () => {
@@ -71,7 +71,7 @@ describe("hybrid retrieval", () => {
     expect(r.every((c) => c.item_id !== "back_brace")).toBe(true);
   });
   it("works with no query embedding (BM25-only fallback)", () => {
-    const r = retrieveHybrid(chunks, "annual limit", null, null);
+    const r = retrieveHybrid(chunks, "annual limit", null, null, 1);
     expect(r[0]!.section).toBe("4.7");
   });
 });
