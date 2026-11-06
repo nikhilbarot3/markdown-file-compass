@@ -119,7 +119,8 @@ Respond ONLY with JSON: {"item": one of the known equipment names exactly, or nu
     let queryEmbedding: number[] | null = null;
     try {
       const emb = await generateEmbeddings({ model: "google/gemini-embedding-2", input: query });
-      queryEmbedding = emb.data[0]?.embedding ?? null;
+      const raw = emb.data[0]?.embedding;
+      queryEmbedding = Array.isArray(raw) ? raw : raw ? (JSON.parse(raw) as number[]) : null;
     } catch {
       // Embeddings unavailable — fall back to BM25-only ranking.
     }

@@ -101,15 +101,19 @@ export function retrieveHybrid(
     score: queryEmbedding && c.embedding ? cosine(queryEmbedding, c.embedding) : 0,
   }));
 
-  // Reciprocal rank fusion over both rankings.
+  // Reciprocal rank fusion over both rankings. Equal scores share a rank
+  // so a ranking with no signal (all zeros) can't create artificial ties.
   const rrf = new Map<PolicyChunk, number>();
   const addRanks = (ranking: { c: PolicyChunk; score: number }[]) => {
-    [...ranking]
-      .sort((x, y) => y.score - x.score)
-      .forEach((r, i) => rrf.set(r.c, (rrf.get(r.c) ?? 0) + 1 / (60 + i + 1)));
+    const sorted = [...ranking].sort((x, y) => y.score - x.score);
+    let rank = 0;
+    sorted.forEach((r, i) => {
+      if (i === 0 || r.score < sorted[i - 1]!.score) rank = i + 1;
+      rrf.set(r.c, (rrf.get(r.c) ?? 0) + 1 / (60 + rank));
+    });
   };
   addRanks(bm25);
-  addRanks(semantic);
+  if (queryEmbedding) addRanks(semantic);
 
   return pool
     .map((c) => ({ c, score: (rrf.get(c) ?? 0) + (itemId && c.item_id === itemId ? 0.05 : 0) }))
