@@ -10,4 +10,4 @@
 - [x] Review citation mismatch, replace correctness F1 with unranked context precision, and deliver revised six-case analysis
 - [x] Add privacy-safe conversation/request correlation and stage traces, and verify the live chat flow
 - [x] Connect LangSmith and verify metadata-only threaded traces through live chat, coverage, and LangSmith readback
-- [ ] Add isolated fixed-fixture LangSmith demonstration with visible sample inputs/outputs and verify privacy
+- [x] Add isolated fixed-fixture LangSmith demonstration with visible sample inputs/outputs and verify privacy
