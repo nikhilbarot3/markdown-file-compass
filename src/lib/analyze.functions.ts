@@ -36,11 +36,16 @@ export const analyzePrescription = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => Input.parse(d))
   .handler(async ({ data }): Promise<AnalyzeResult> => {
     const { createTrace } = await import("./trace");
+    const { exportLangsmith } = await import("./langsmith.server");
     const { setResponseHeader } = await import("@tanstack/react-start/server");
-    const trace = createTrace(data.threadId ?? crypto.randomUUID());
+    const credentials = { gatewayKey: process.env["LOVABLE_API_KEY"],
+      connectionKey: process.env["UDC_LANGSMITH_API_KEY"] };
+    const trace = createTrace(data.threadId ?? crypto.randomUUID(), console.info,
+      (spans) => exportLangsmith(spans, credentials));
     setResponseHeader("X-Coverage-Trace-ID", trace.traceId);
     setResponseHeader("X-Coverage-Thread-ID", trace.threadId);
-    return trace.step("request", async () => {
+    try {
+    return await trace.step("request", async () => {
     const { callGemma, parseJson } = await import("./gemma.server");
     const { retrieveHybrid, buildContext } = await import("./rag");
     const { createClient } = await import("@supabase/supabase-js");
@@ -187,4 +192,7 @@ ${context}`,
       },
     };
     });
+    } finally {
+      await trace.flush();
+    }
   });
