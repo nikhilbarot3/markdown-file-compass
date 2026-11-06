@@ -1,4 +1,5 @@
 import { langsmithBatch } from "./langsmith";
+import { syntheticDemoBatch } from "./langsmith-demo";
 import type { CompletedSpan } from "./trace";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/udc_langsmith";
@@ -10,6 +11,23 @@ export async function exportLangsmith(spans: CompletedSpan[], credentials: {
   if (!credentials.gatewayKey || !credentials.connectionKey) return;
   const batch = langsmithBatch(spans);
   if (batch.post.length === 0) return;
+  await sendBatch(batch, spans[0]?.traceId, credentials, send, sink);
+}
+
+type Credentials = { gatewayKey?: string | undefined; connectionKey?: string | undefined };
+
+/** Only this no-content entry point can export visible synthetic inputs/outputs. */
+export async function exportSyntheticDemo(credentials: Credentials, send: typeof fetch = fetch) {
+  if (!credentials.gatewayKey || !credentials.connectionKey) return { ok: false as const };
+  const demo = syntheticDemoBatch();
+  const ok = await sendBatch(demo.batch, demo.traceIds[0], credentials, send, console.info);
+  return ok ? { ok: true as const, threadId: demo.threadId, traceIds: demo.traceIds }
+    : { ok: false as const };
+}
+
+async function sendBatch(batch: { post: unknown[] }, traceId: string | undefined, credentials: Credentials,
+  send: typeof fetch, sink: (line: string) => void) {
+  if (!credentials.gatewayKey || !credentials.connectionKey) return false;
   let status: number | undefined;
   let outcome: "ok" | "http_error" | "unavailable" = "unavailable";
   try {
@@ -28,6 +46,7 @@ export async function exportLangsmith(spans: CompletedSpan[], credentials: {
   } catch { /* Bounded best-effort export; no exceptions or stacks retained. */ }
   try {
     sink(JSON.stringify({ event: "coverage_trace_export", provider: "langsmith",
-      traceId: spans[0]?.traceId, outcome, ...(status === undefined ? {} : { status }) }));
+      traceId, outcome, ...(status === undefined ? {} : { status }) }));
   } catch { /* Logging must also remain best-effort. */ }
+  return outcome === "ok";
 }

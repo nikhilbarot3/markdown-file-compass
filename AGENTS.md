@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 - Match score and packet text are plain code in src/lib/precheck.ts (never the model) so the score stays explainable.
+- Visible LangSmith content is allowed only via a separate empty-input fixed-fixture demo in its own project and server-generated thread; normal tracing remains metadata-only, so no user chat, uploads, history or model output can enter the demo exporter. Demo replies and timings are simulated, not evaluation observations.
 - Coverage requests use a per-page conversation UUID and server-generated trace UUID with allowlisted structured stage logs; never log prompts, prescriptions, diagnoses, filenames or error messages, so tracing does not retain patient content. Gateway embedding run IDs match request trace IDs; external backend tracing is outside this pipeline. LangSmith uses explicit metadata-only completed runs through the linked connector gateway, awaited with a bounded best-effort export in the request finally block; never enable automatic input/output capture.
 - Offline RAGAS tooling lives in evaluation/ and collects actual UI answers; reference data is never substituted for observed answers, and quality metrics remain separate from supplier match scores.
 - Section-sorted UI evidence uses RAGAS chunk relevance judgments with an explicitly unranked relevant-chunk fraction for context precision, because ranked average precision would misrepresent retrieval order; citation audits check IDs separately from entailment.

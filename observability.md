@@ -59,3 +59,17 @@ therefore be a successful root request with an error-status child.
 Export failures are not retried or queued; trace delivery is not guaranteed.
 Removing the connection disables export while existing local logs continue.
 The privacy guarantee applies to this exporter, not other providers' retention policies.
+
+## Synthetic-only demonstration
+
+Open **LangSmith synthetic demo (sample)** below the chat and choose **Run synthetic
+trace (sample)**. Two immutable authored turns are exported to the separate
+`coverage-precheck-synthetic-demo` project with nonempty sample inputs and outputs.
+Select that project and its Threads view in LangSmith. Every click creates a fresh
+server-generated thread, with two request roots and fixed-reply children.
+
+These are simulated fixture runs, not live Gemma calls, measured model timings or
+RAGAS observations. No model is called or inferred token/cost usage recorded.
+The demo function accepts only an empty object, rejects arbitrary content, and does
+not access messages, uploads, plan selection, history or the normal conversation ID.
+Opening/running the demo never enables content capture for normal requests.
