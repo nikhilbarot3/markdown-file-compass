@@ -41,6 +41,9 @@ async def collect(args):
                         raise ValueError("Missing observed price/limit")
                     row["price"], row["plan_limit"] = [float(v.replace(",", "")) for v in numbers.groups()]
                     validate_observation(row)
+                    if args.screenshots:
+                        args.screenshots.mkdir(parents=True, exist_ok=True)
+                        await page.screenshot(path=str(args.screenshots / f"{case['id']}.png"))
                     print(f"Collected {case['id']}")
                 except Exception as error:
                     failures += 1
@@ -59,4 +62,5 @@ if __name__ == "__main__":
     parser.add_argument("--cases", type=Path, default=HERE / "cases.jsonl")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--limit", type=int)
+    parser.add_argument("--screenshots", type=Path, help="Optional directory for live UI evidence")
     raise SystemExit(1 if asyncio.run(collect(parser.parse_args())) else 0)
