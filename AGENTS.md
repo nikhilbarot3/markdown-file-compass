@@ -11,4 +11,4 @@
 
 - Match score and packet text are plain code in src/lib/precheck.ts (never the model) so the score stays explainable.
 - Plans, policy sections, equipment items, suppliers, stock and network membership live in Lovable Cloud tables (public read-only); exact supplier/stock/price numbers always come from SQL, not the model.
-- Submit/chat call analyzePrescription (src/lib/analyze.functions.ts): Gemma via OpenRouter (OPENROUTER_API_KEY) extracts the item from text/image/PDF text (unpdf), BM25 over policy_sections (src/lib/rag.ts) retrieves plan rules, Gemma answers citing only those sections. VITE_BACKEND_URL, if set, overrides with the external Flask backend.
+- Submit/chat call analyzePrescription (src/lib/analyze.functions.ts): Gemma via OpenRouter (OPENROUTER_API_KEY) extracts the item from text/image/PDF text (unpdf), hybrid retrieval over policy_sections (src/lib/rag.ts: BM25 + pgvector embeddings from google/gemini-embedding-2 via @lovable.dev/ai-gateway, fused with RRF) retrieves plan rules, Gemma answers citing only those sections. VITE_BACKEND_URL, if set, overrides with the external Flask backend.
