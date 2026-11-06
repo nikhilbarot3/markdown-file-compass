@@ -62,6 +62,7 @@ export type Database = {
       policy_sections: {
         Row: {
           body: string
+          embedding: string | null
           id: string
           item_id: string | null
           plan_id: string
@@ -70,6 +71,7 @@ export type Database = {
         }
         Insert: {
           body: string
+          embedding?: string | null
           id?: string
           item_id?: string | null
           plan_id: string
@@ -78,6 +80,7 @@ export type Database = {
         }
         Update: {
           body?: string
+          embedding?: string | null
           id?: string
           item_id?: string | null
           plan_id?: string
