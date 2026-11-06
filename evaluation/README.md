@@ -1,0 +1,64 @@
+# RAGAS evaluation
+
+Offline evaluation of **real answers collected from the running app**, independent of the
+four-check supplier match score. Six hand-authored synthetic cases cover both plans, prior
+authorization, CPAP's BlueCare sleep-study requirement, and within/over-limit equipment.
+References come from committed SQL seed data; review them if your policies or prices change.
+
+## Run
+
+Keep the app running (`bun run dev`) and use its printed URL. Install Python 3.10+ and Bun.
+Keep the environment and generated results **outside the repository**:
+
+```sh
+python3 -m venv /tmp/coverage-ragas
+/tmp/coverage-ragas/bin/python -m pip install -r evaluation/requirements.txt
+/tmp/coverage-ragas/bin/python -m playwright install chromium
+/tmp/coverage-ragas/bin/python -m unittest discover -s evaluation -p 'test_*.py'
+
+/tmp/coverage-ragas/bin/python evaluation/collect.py \
+  --url http://localhost:5173 --output /tmp/coverage-eval/observations.jsonl
+
+/tmp/coverage-ragas/bin/python evaluation/evaluate.py \
+  --input /tmp/coverage-eval/observations.jsonl --output /tmp/coverage-eval/report.json
+```
+
+Use `--limit 1` on collection for a small smoke run. Inside the Lovable sandbox the URL is
+`http://localhost:8080`, Chromium is already installed, and the AI Gateway judge is managed.
+Outside Lovable, configure AI Gateway SDK authentication with a private local environment
+before scoring; never commit credentials. The existing OpenRouter key is still required by
+the running app for Gemma, but is **not** the evaluation judge credential.
+
+Collection invokes the normal Check button, including Gemma extraction and hybrid retrieval.
+It does not bypass the application or recreate retrieval in Python. If `VITE_BACKEND_URL` is
+configured, it evaluates that configured pipeline instead. Each case starts in a fresh browser
+context to avoid history contamination. Failures are written explicitly and return a nonzero exit.
+
+## Metrics (0–1, higher is better)
+
+- **Faithfulness:** Are claims in the answer supported by the observed policy facts and SQL facts?
+- **Context recall:** Do retrieved policy facts cover the reference policy requirements?
+- **Factual correctness (F1):** Does the answer match the hand-written reference, balancing
+  unsupported claims against omissions?
+
+The judge is independent of Gemma: `openai/gpt-6-astra` through the existing AI Gateway SDK.
+RAGAS 0.4.3's legacy single-turn API is version-pinned with compatible LangChain dependencies.
+No separate embedding call is required for these three metrics. Evaluation consumes AI credits,
+in addition to the normal app calls; begin with one case. Requests are not automatically retried.
+
+The JSON report includes per-case scores/errors, metric averages, scored/total counts, RAGAS
+version, judge model, and timestamp. Failed metrics remain null and are never silently averaged
+as zero. A partial report is saved after each case. There is no arbitrary pass threshold.
+
+## Interpretation and limitations
+
+- This measures six **sample text requests**, not PDF/OCR accuracy, patient outcomes, clinical
+  safety, or production readiness. Add redacted image/PDF cases separately before making such claims.
+- Returned/displayed policy facts are used as contexts; they are not an exact model prompt trace.
+  Current sample sections fit the 3,000-character budget; larger policies need exact prompt capture.
+- SQL price/limit facts are added to faithfulness context because the answer receives them
+  separately. They are excluded from policy-only context recall to avoid inflating retrieval quality.
+- Context precision is intentionally omitted: the UI sorts facts by section number, not retrieval
+  rank. Ranking-sensitive precision would be misleading on this observation source.
+- Judge scores vary. Review low scores and repeat representative runs before drawing conclusions.
+- Synthetic data only. Never commit real prescriptions or evaluation output with patient data.
