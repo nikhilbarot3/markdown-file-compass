@@ -5,6 +5,8 @@ export interface PolicyChunk {
   title: string;
   body: string;
   item_id: string | null;
+  /** Dense embedding of `title + body` (pgvector), when available. */
+  embedding?: number[] | null;
 }
 
 const STOP = new Set("a an the of for to and or is are be in on with this that it your you at by as".split(" "));
