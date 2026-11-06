@@ -1,0 +1,84 @@
+{
+  "evaluated_at": "2026-11-06T13:32:25.585128+00:00",
+  "ragas_version": "0.4.3",
+  "judge_model": "openai/gpt-6-astra",
+  "dataset": "/tmp/browser/ragas-full/observations.jsonl",
+  "summary": {
+    "faithfulness": {
+      "mean": 0.9333333333333332,
+      "scored_cases": 6,
+      "total_cases": 6
+    },
+    "context_recall": {
+      "mean": 0.7361111111111112,
+      "scored_cases": 6,
+      "total_cases": 6
+    },
+    "factual_correctness": {
+      "mean": 0.17500000000000002,
+      "scored_cases": 6,
+      "total_cases": 6
+    }
+  },
+  "cases": [
+    {
+      "id": "bluecare-back-brace",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 0.75,
+        "factual_correctness": 0.25
+      },
+      "errors": {}
+    },
+    {
+      "id": "bluecare-cpap",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 0.75,
+        "factual_correctness": 0.0
+      },
+      "errors": {}
+    },
+    {
+      "id": "metro-back-brace",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 0.75,
+        "factual_correctness": 0.0
+      },
+      "errors": {}
+    },
+    {
+      "id": "metro-cpap",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 0.75,
+        "factual_correctness": 0.0
+      },
+      "errors": {}
+    },
+    {
+      "id": "metro-walker",
+      "scores": {
+        "faithfulness": 0.6,
+        "context_recall": 0.6666666666666666,
+        "factual_correctness": 0.44
+      },
+      "errors": {}
+    },
+    {
+      "id": "bluecare-wheelchair",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 0.75,
+        "factual_correctness": 0.36
+      },
+      "errors": {}
+    }
+  ],
+  "limitations": [
+    "Synthetic text cases, not clinical validation.",
+    "Displayed policy facts are not an exact prompt trace.",
+    "Context precision omitted because displayed facts are section-sorted, not rank-ordered."
+  ]
+}
