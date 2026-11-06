@@ -1,0 +1,310 @@
+{
+  "evaluated_at": "2026-11-06T13:41:45.230169+00:00",
+  "ragas_version": "0.4.3",
+  "judge_model": "openai/gpt-6-astra",
+  "dataset": "/tmp/browser/ragas-full/observations.jsonl",
+  "summary": {
+    "faithfulness": {
+      "mean": 0.9333333333333332,
+      "scored_cases": 6,
+      "total_cases": 6
+    },
+    "context_recall": {
+      "mean": 0.7361111111111112,
+      "scored_cases": 6,
+      "total_cases": 6
+    },
+    "context_precision": {
+      "mean": 1.0,
+      "scored_cases": 6,
+      "total_cases": 6
+    }
+  },
+  "cases": [
+    {
+      "id": "bluecare-back-brace",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 0.75,
+        "context_precision": 1.0
+      },
+      "errors": {},
+      "citation_audit": {
+        "cited_sections": [
+          "2.1",
+          "4.2",
+          "4.5",
+          "4.7"
+        ],
+        "observed_sections": [
+          "2.1",
+          "4.2",
+          "4.5",
+          "4.7"
+        ],
+        "missing_sections": [],
+        "scope": "Section ID presence only, not claim entailment"
+      },
+      "precision_evidence": [
+        {
+          "context": "Section 2.1: Use an in-network supplier to receive plan benefits. Out-of-network equipment is not covered except in emergencies (sample).",
+          "reason": "The context supports the requirement to use an in-network supplier and the exclusion of out-of-network equipment except in emergencies. It is useful for that portion of the answer, although it does not support the coverage percentage, prior authorization requirement, or annual limit.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.2: Durable medical equipment is covered at 80% after deductible when prescribed by a licensed provider (sample).",
+          "reason": "The context supports the answer that prescribed durable medical equipment is covered at 80% after the deductible. It is therefore useful, although it does not support the additional claims about prior authorization, supplier networks, emergency exceptions, or the $250 annual limit.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.5: A back brace needs prior authorization before purchase (sample).",
+          "reason": "The context directly supports the requirement that a back brace needs prior authorization before purchase. It was useful for this part of the answer, although it does not support the additional coverage, supplier, or annual limit details.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.7: Annual equipment limit for this item is $250 (sample).",
+          "reason": "The context provides the $250 annual equipment limit included in the answer, so it was useful. It does not support the other claims about coverage, prior authorization, or supplier requirements.",
+          "verdict": 1
+        }
+      ]
+    },
+    {
+      "id": "bluecare-cpap",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 0.75,
+        "context_precision": 1.0
+      },
+      "errors": {},
+      "citation_audit": {
+        "cited_sections": [
+          "2.1",
+          "4.2",
+          "4.5",
+          "4.7"
+        ],
+        "observed_sections": [
+          "2.1",
+          "4.2",
+          "4.5",
+          "4.7"
+        ],
+        "missing_sections": [],
+        "scope": "Section ID presence only, not claim entailment"
+      },
+      "precision_evidence": [
+        {
+          "context": "Section 2.1: Use an in-network supplier to receive plan benefits. Out-of-network equipment is not covered except in emergencies (sample).",
+          "reason": "The context supports the requirement to use an in-network supplier and the exclusion of out-of-network equipment except in emergencies. It is useful for that portion of the answer, but does not support the coverage percentage, prior authorization, sleep study, or annual limit claims.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.2: Durable medical equipment is covered at 80% after deductible when prescribed by a licensed provider (sample).",
+          "reason": "The context supports the answer that prescribed durable medical equipment is covered at 80% after deductible. It is therefore useful, although it does not establish the plan name, CPAP prior authorization, sleep study, supplier restrictions, or annual limit.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.5: A CPAP needs prior authorization and a sleep study on file (sample).",
+          "reason": "The context directly supports the requirement that a CPAP needs prior authorization and a sleep study on file. It is useful for that part of the answer, although it does not support the additional coverage, supplier, or annual limit details.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.7: Annual equipment limit for this item is $250 (sample).",
+          "reason": "The context supports the $250 annual item limit stated in the answer, making it useful, although it does not support the other coverage and CPAP requirements.",
+          "verdict": 1
+        }
+      ]
+    },
+    {
+      "id": "metro-back-brace",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 0.75,
+        "context_precision": 1.0
+      },
+      "errors": {},
+      "citation_audit": {
+        "cited_sections": [
+          "2.1",
+          "4.2",
+          "4.5",
+          "4.7"
+        ],
+        "observed_sections": [
+          "2.1",
+          "4.2",
+          "4.5",
+          "4.7"
+        ],
+        "missing_sections": [],
+        "scope": "Section ID presence only, not claim entailment"
+      },
+      "precision_evidence": [
+        {
+          "context": "Section 2.1: Equipment must come from a Medicaid-enrolled supplier (sample).",
+          "reason": "The context directly supports the requirement that the back brace must come from a Medicaid-enrolled supplier. It is useful for that part of the answer, though it does not support the other coverage, authorization, or limit details.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.2: Durable medical equipment is covered with no copay when medically necessary (sample).",
+          "reason": "The context supports the answer that medically necessary durable medical equipment is covered with no copay. It does not support the additional claims about prior authorization, supplier enrollment, or a $400 annual limit.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.5: A back brace needs prior authorization before purchase (sample).",
+          "reason": "The context directly supports the requirement that a back brace needs prior authorization before purchase. It is useful even though it does not support the additional coverage, copay, supplier, or annual limit details in the answer.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.7: Annual equipment limit for this item is $400 (sample).",
+          "reason": "The context provides the $400 annual equipment limit stated in the answer, so it was useful. It does not support the other claims about coverage, copays, prior authorization, or supplier requirements.",
+          "verdict": 1
+        }
+      ]
+    },
+    {
+      "id": "metro-cpap",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 0.75,
+        "context_precision": 1.0
+      },
+      "errors": {},
+      "citation_audit": {
+        "cited_sections": [
+          "2.1",
+          "4.2",
+          "4.5",
+          "4.7"
+        ],
+        "observed_sections": [
+          "2.1",
+          "4.2",
+          "4.5",
+          "4.7"
+        ],
+        "missing_sections": [],
+        "scope": "Section ID presence only, not claim entailment"
+      },
+      "precision_evidence": [
+        {
+          "context": "Section 2.1: Equipment must come from a Medicaid-enrolled supplier (sample).",
+          "reason": "The context supports the requirement that equipment must come from a Medicaid-enrolled supplier, which is included in the answer. It does not support the other coverage, authorization, or limit details.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.2: Durable medical equipment is covered with no copay when medically necessary (sample).",
+          "reason": "The context supports the answer that medically necessary durable medical equipment is covered with no copay. It does not support the additional claims about CPAP prior authorization, supplier enrollment, or the annual item limit.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.5: A CPAP needs prior authorization before purchase (sample).",
+          "reason": "The context explicitly states that a CPAP requires prior authorization before purchase, supporting that requirement in the answer. It does not support the additional coverage, supplier, copay, or annual limit details.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.7: Annual equipment limit for this item is $400 (sample).",
+          "reason": "The context supports the annual equipment limit of $400 stated in the answer, making it useful. It does not support the other claims about coverage, copays, prior authorization, or supplier requirements.",
+          "verdict": 1
+        }
+      ]
+    },
+    {
+      "id": "metro-walker",
+      "scores": {
+        "faithfulness": 0.6,
+        "context_recall": 0.6666666666666666,
+        "context_precision": 1.0
+      },
+      "errors": {},
+      "citation_audit": {
+        "cited_sections": [
+          "2.1",
+          "4.2",
+          "4.7"
+        ],
+        "observed_sections": [
+          "2.1",
+          "4.2",
+          "4.7"
+        ],
+        "missing_sections": [],
+        "scope": "Section ID presence only, not claim entailment"
+      },
+      "precision_evidence": [
+        {
+          "context": "Section 2.1: Equipment must come from a Medicaid-enrolled supplier (sample).",
+          "reason": "The context was useful because it directly supports the requirement that equipment must come from a Medicaid-enrolled supplier. It does not support the other coverage details in the answer.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.2: Durable medical equipment is covered with no copay when medically necessary (sample).",
+          "reason": "The context supports the answer that medically necessary durable medical equipment, such as a walker, is covered with no copay. It does not support the supplier requirement or the $400 annual limit.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.7: Annual equipment limit for this item is $400 (sample).",
+          "reason": "The context provides the $400 annual equipment limit stated in the answer, making it useful. It does not support the other claims about coverage, copays, or supplier requirements.",
+          "verdict": 1
+        }
+      ]
+    },
+    {
+      "id": "bluecare-wheelchair",
+      "scores": {
+        "faithfulness": 1.0,
+        "context_recall": 0.75,
+        "context_precision": 1.0
+      },
+      "errors": {},
+      "citation_audit": {
+        "cited_sections": [
+          "2.1",
+          "4.2",
+          "4.5",
+          "4.7"
+        ],
+        "observed_sections": [
+          "2.1",
+          "4.2",
+          "4.5",
+          "4.7"
+        ],
+        "missing_sections": [],
+        "scope": "Section ID presence only, not claim entailment"
+      },
+      "precision_evidence": [
+        {
+          "context": "Section 2.1: Use an in-network supplier to receive plan benefits. Out-of-network equipment is not covered except in emergencies (sample).",
+          "reason": "The context supports the requirement to use an in-network supplier and the exclusion of out-of-network equipment except in emergencies. It is useful for that portion of the answer, although it does not support the coverage percentage, deductible, prior authorization requirement, or annual item limit.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.2: Durable medical equipment is covered at 80% after deductible when prescribed by a licensed provider (sample).",
+          "reason": "The context supports the answer that prescribed durable medical equipment is covered at 80% after deductible. It is useful for that coverage detail, but does not substantiate the plan name, prior authorization, supplier restrictions, emergency exception, or annual item limit.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.5: A wheelchair needs prior authorization before purchase (sample).",
+          "reason": "The context directly supports the requirement for prior authorization before purchasing a wheelchair. It was useful for that part of the answer, although it does not support the coverage percentage, supplier restrictions, or annual limit.",
+          "verdict": 1
+        },
+        {
+          "context": "Section 4.7: Annual equipment limit for this item is $250 (sample).",
+          "reason": "The context provides the annual equipment limit of $250, which is included in the answer. It is useful for that detail but does not support the other coverage requirements stated.",
+          "verdict": 1
+        }
+      ]
+    }
+  ],
+  "protocol": "v2: faithfulness, context recall, unranked context precision; no correctness F1",
+  "context_precision_definition": "Relevant observed policy chunks / all observed policy chunks; RAGAS relevance judgments, custom unranked aggregation (not RAGAS ranked average precision).",
+  "observation_mode": "Re-scoring saved actual UI observations; no new app answers generated.",
+  "limitations": [
+    "Synthetic text cases, not clinical validation.",
+    "Displayed policy facts are not an exact prompt trace.",
+    "Context precision is unranked; it does not measure retrieval ranking quality.",
+    "Citation audit checks ID presence, not semantic claim support.",
+    "Golden policy references are hand-authored, not independently insurer-validated."
+  ]
+}
