@@ -52,6 +52,20 @@ as zero. A partial report is saved after each case. There is no arbitrary pass t
 
 ## Interpretation and limitations
 
+### Six-case run (6 November 2026)
+
+`full-results-2026-11-06.json` contains the six-case raw run: faithfulness 0.9333,
+context recall 0.7361, and factual correctness F1 0.1750; all 18 metrics completed.
+These are **provisional judge outputs**, not validated accuracy percentages. Inspection
+of wheelchair correctness decisions showed correct policy claims rejected because
+the answer's section citation labels were absent from the plain-text golden reference.
+Do not interpret 0.175 as only 17.5% of answers being correct. Validate citation-aware
+goldens/judge calibration in a separately versioned run before claiming accuracy.
+The original six hand-authored synthetic references were kept unchanged; they are
+not independently insurer-validated and omit BlueCare's licensed-provider qualification.
+
+Use collection's optional `--screenshots /tmp/coverage-eval/screenshots` for UI evidence.
+
 - This measures six **sample text requests**, not PDF/OCR accuracy, patient outcomes, clinical
   safety, or production readiness. Add redacted image/PDF cases separately before making such claims.
 - Returned/displayed policy facts are used as contexts; they are not an exact model prompt trace.
