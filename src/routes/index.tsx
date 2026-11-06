@@ -58,6 +58,7 @@ function Dashboard() {
   const [result, setResult] = useState<ChatResponse | null>(null);
   const [copied, setCopied] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const threadRef = useRef<string | null>(null);
   const analyze = useServerFn(analyzePrescription);
 
   const ranked = useMemo(() => (result ? rankSuppliers(result, planId) : []), [result, planId]);
@@ -90,8 +91,10 @@ function Dashboard() {
         if (!r.ok) throw new Error(`The service returned an error (${r.status}).`);
         data = json as ChatResponse;
       } else {
+        threadRef.current ??= crypto.randomUUID();
         const res = await analyze({
           data: {
+            threadId: threadRef.current,
             planId,
             message,
             history: msgs.slice(-6),

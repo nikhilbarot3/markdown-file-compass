@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 - Match score and packet text are plain code in src/lib/precheck.ts (never the model) so the score stays explainable.
+- Coverage requests use a per-page conversation UUID and server-generated trace UUID with allowlisted structured stage logs; never log prompts, prescriptions, diagnoses, filenames or error messages, so tracing does not retain patient content. Gateway embedding run IDs match request trace IDs; external backend tracing is outside this pipeline.
 - Offline RAGAS tooling lives in evaluation/ and collects actual UI answers; reference data is never substituted for observed answers, and quality metrics remain separate from supplier match scores.
 - Section-sorted UI evidence uses RAGAS chunk relevance judgments with an explicitly unranked relevant-chunk fraction for context precision, because ranked average precision would misrepresent retrieval order; citation audits check IDs separately from entailment.
 - Plans, policy sections, equipment items, suppliers, stock and network membership live in Lovable Cloud tables (public read-only); exact supplier/stock/price numbers always come from SQL, not the model.

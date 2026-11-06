@@ -4,6 +4,7 @@ import type { ChatResponse } from "./precheck";
 import type { Database } from "@/integrations/supabase/types";
 
 const Input = z.object({
+  threadId: z.string().uuid().optional(),
   planId: z.enum(["bluecare_ppo", "metro_medicaid"]),
   message: z.string().max(2000),
   history: z
@@ -34,6 +35,12 @@ export interface Extracted {
 export const analyzePrescription = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => Input.parse(d))
   .handler(async ({ data }): Promise<AnalyzeResult> => {
+    const { createTrace } = await import("./trace");
+    const { setResponseHeader } = await import("@tanstack/react-start/server");
+    const trace = createTrace(data.threadId ?? crypto.randomUUID());
+    setResponseHeader("X-Coverage-Trace-ID", trace.traceId);
+    setResponseHeader("X-Coverage-Thread-ID", trace.threadId);
+    return trace.step("request", async () => {
     const { callGemma, parseJson } = await import("./gemma.server");
     const { retrieveHybrid, buildContext } = await import("./rag");
     const { createClient } = await import("@supabase/supabase-js");
@@ -51,16 +58,17 @@ export const analyzePrescription = createServerFn({ method: "POST" })
       },
     });
 
-    const [{ data: items }, { data: plan }] = await Promise.all([
+    const [{ data: items }, { data: plan }] = await trace.step("catalog", () => Promise.all([
       db.from("equipment_items").select("id, name, price, hcpcs_code"),
       db.from("plans").select("*").eq("id", data.planId).maybeSingle(),
-    ]);
+    ]));
     const itemNames = (items ?? []).map((i) => i.name);
 
     // 1) Gemma reads the prescription (image / PDF / text) and extracts the equipment.
     const userParts: ({ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } } | { type: "file"; file: { filename: string; file_data: string } })[] = [
       { type: "text", text: data.message || "Please read my prescription." },
     ];
+    await trace.step("document", async () => {
     if (data.file) {
       if (data.file.mime === "application/pdf") {
         // Extract text from the PDF server-side, then give it to Gemma.
@@ -79,7 +87,8 @@ export const analyzePrescription = createServerFn({ method: "POST" })
         userParts.push({ type: "image_url", image_url: { url: `data:${data.file.mime};base64,${data.file.b64}` } });
       }
     }
-    const extractRaw = await callGemma(
+    });
+    const extractRaw = await trace.step("extraction", () => callGemma(
       [
         {
           role: "system",
@@ -93,10 +102,12 @@ Respond ONLY with JSON: {"item": one of the known equipment names exactly, or nu
       ],
       300,
       true,
-    );
+      (details) => trace.metadata("extraction", details),
+    ), { model: "google/gemma-4-31b-it" });
     const ex = parseJson<Extracted>(extractRaw) ?? { item: null, prescriber: null, diagnosis: null, readable: !data.file, reply: extractRaw };
     const item = (items ?? []).find((i) => i.name.toLowerCase() === (ex.item ?? "").toLowerCase());
     if (!item) {
+      trace.metadata("request", { outcome: "chat" });
       return {
         kind: "chat",
         reply: ex.reply || (data.file ? "I couldn't find a supported equipment item on that prescription. Could you tell me what was prescribed?" : "How can I help?"),
@@ -105,10 +116,10 @@ Respond ONLY with JSON: {"item": one of the known equipment names exactly, or nu
 
     // 2) Retrieve the relevant policy sections for this plan (hybrid RAG:
     //    BM25 over keywords + dense-vector similarity, fused with RRF).
-    const { data: sections } = await db
+    const { data: sections } = await trace.step("policy_read", async () => await db
       .from("policy_sections")
       .select("section, title, body, item_id, embedding")
-      .eq("plan_id", data.planId);
+      .eq("plan_id", data.planId));
     const query = `${item.name} ${ex.diagnosis ?? ""} coverage prior authorization annual limit network supplier`;
 
     const { generateEmbeddings } = await import("@lovable.dev/ai-gateway");
@@ -118,17 +129,22 @@ Respond ONLY with JSON: {"item": one of the known equipment names exactly, or nu
     }));
     let queryEmbedding: number[] | null = null;
     try {
-      const emb = await generateEmbeddings({ model: "google/gemini-embedding-2", input: query });
+      const emb = await trace.step("embedding", () => generateEmbeddings(
+        { model: "google/gemini-embedding-2", input: query },
+        { runId: trace.traceId, metadata: { thread_id: trace.threadId, stage: "embedding" } }
+      ), { model: "google/gemini-embedding-2" });
       const raw = emb.data[0]?.embedding;
       queryEmbedding = Array.isArray(raw) ? raw : raw ? (JSON.parse(raw) as number[]) : null;
     } catch {
       // Embeddings unavailable — fall back to BM25-only ranking.
     }
-    const top = retrieveHybrid(chunks, query, queryEmbedding, item.id, 4);
+    const top = await trace.step("retrieval", async () => retrieveHybrid(chunks, query, queryEmbedding, item.id, 4),
+      { mode: queryEmbedding ? "hybrid" : "bm25" });
+    trace.metadata("retrieval", { sectionIds: top.map((c) => c.section), chunkCount: top.length });
     const context = buildContext(top, 3000);
 
     // 3) Gemma writes a plain-language answer grounded only in the retrieved excerpts.
-    const answer = await callGemma(
+    const answer = await trace.step("answer", () => callGemma(
       [
         {
           role: "system",
@@ -139,15 +155,18 @@ ${context}`,
         { role: "user", content: `The prescription is for a ${item.name}${ex.diagnosis ? ` (diagnosis: ${ex.diagnosis})` : ""}. What applies and what should I do next?` },
       ],
       300,
-    );
+      false,
+      (details) => trace.metadata("answer", details),
+    ), { model: "google/gemma-4-31b-it" });
 
     // 4) Exact supplier / stock / network numbers come from the database, not the model.
-    const [{ data: stock }, { data: nets }] = await Promise.all([
+    const [{ data: stock }, { data: nets }] = await trace.step("suppliers", () => Promise.all([
       db.from("supplier_stock").select("qty, suppliers(id, name, address, area)").eq("item_id", item.id),
       db.from("supplier_networks").select("supplier_id").eq("plan_id", data.planId),
-    ]);
+    ]));
     const inNet = new Set((nets ?? []).map((n) => n.supplier_id));
 
+    trace.metadata("request", { outcome: "result" });
     return {
       kind: "result",
       extracted: ex,
@@ -159,13 +178,13 @@ ${context}`,
         plan_limit: plan ? Number(plan.annual_limit) : undefined,
         policy_facts: top.map((c) => ({ section: c.section, text: c.body })),
         suppliers: (stock ?? [])
-          .filter((r) => r.suppliers)
-          .map((r) => ({
-            name: r.suppliers!.name,
-            address: [r.suppliers!.address, r.suppliers!.area].filter(Boolean).join(" · "),
+          .flatMap((r) => r.suppliers ? [{
+            name: r.suppliers.name,
+            address: [r.suppliers.address, r.suppliers.area].filter(Boolean).join(" · "),
             qty: r.qty,
-            in_network: inNet.has(r.suppliers!.id),
-          })),
+            in_network: inNet.has(r.suppliers.id),
+          }] : []),
       },
     };
+    });
   });
