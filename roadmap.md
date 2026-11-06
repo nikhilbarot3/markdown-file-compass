@@ -8,3 +8,4 @@
 - [x] Add standalone RAGAS evaluation of live answers and retrieved policy facts (one live smoke case verified)
 - [x] Run all six sample cases against golden references and deliver presentation-ready benchmark analysis (raw scores labeled provisional due to judge citation mismatch)
 - [x] Review citation mismatch, replace correctness F1 with unranked context precision, and deliver revised six-case analysis
+- [ ] Add privacy-safe conversation/request correlation and stage traces, and verify the live chat flow
