@@ -1,0 +1,17 @@
+{
+  "run_type": "single live sample case smoke test, not full benchmark",
+  "case_id": "bluecare-back-brace",
+  "ragas_version": "0.4.3",
+  "judge_model": "openai/gpt-6-astra",
+  "scores": {
+    "faithfulness": 1.0,
+    "context_recall": 0.75,
+    "factual_correctness": 0.25
+  },
+  "errors": {},
+  "limitations": [
+    "Only one of six sample cases evaluated.",
+    "Judge scores are not clinical validation or coverage guarantees.",
+    "Collected policy facts are not an exact prompt trace."
+  ]
+}

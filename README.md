@@ -13,8 +13,9 @@ a coverage decision.
 1. **Gemma reads the request** — `google/gemma-4-31b-it` through OpenRouter. Text, a photo, or a
    PDF (PDF text is extracted server-side with `unpdf`) is turned into the equipment item,
    prescriber and diagnosis. If no item is present, you get a normal conversational reply instead.
-2. **Retrieval over the plan's rules** — BM25 ranks rows of `public.policy_sections` for that plan
-   and item, so only the relevant sections reach the model (`src/lib/rag.ts`).
+2. **Retrieval over the plan's rules** — hybrid BM25 and dense embeddings stored in pgvector,
+   fused with reciprocal rank fusion, select rows for that plan and item (`src/lib/rag.ts`).
+   If query embeddings are unavailable, retrieval falls back to BM25.
 3. **Gemma writes the answer** — plain language, citing only the retrieved sections.
 4. **Every number comes from SQL** — price, annual limit, stock counts and network membership are
    read from the database, never from the model.
@@ -81,9 +82,14 @@ The schema and every sample row live in `drizzle/migrations`. Apply the files **
 ```sh
 psql "$DATABASE_URL" -f drizzle/migrations/0000_migration.sql
 psql "$DATABASE_URL" -f drizzle/migrations/0001_migration.sql
+psql "$DATABASE_URL" -f drizzle/migrations/0002_add_policy_section_embeddings.sql
 ```
 
 Or open each file and run its contents in your database's SQL editor.
+
+The third migration adds nullable 3,072-dimensional pgvector embeddings. It does not populate
+them: a new database needs embeddings of each section's title and body from
+`google/gemini-embedding-2` to enable dense matching. Policy reads still work without them.
 
 Six tables, all read-only: `plans`, `equipment_items`, `suppliers`, `supplier_stock`,
 `supplier_networks`, `policy_sections`. Each has row-level security enabled with a public `SELECT`
@@ -120,6 +126,15 @@ What's in them:
 | `npm run lint` | ESLint |
 | `npm run format` | Prettier |
 
+## RAGAS evaluation
+
+Offline evaluation now measures answer faithfulness, policy-context recall and factual
+correctness against six hand-written sample references. It collects actual answers from the
+running app; it never scores canned answers and does not change the supplier match score.
+See [evaluation/README.md](evaluation/README.md) for installation, live collection, scoring,
+AI-credit requirements and limitations. Generated reports and Python environments belong
+outside the repository.
+
 ## Where things live
 
 | Path | Contents |
@@ -127,10 +142,11 @@ What's in them:
 | `src/routes/index.tsx` | The single dashboard screen |
 | `src/lib/analyze.functions.ts` | Server function: read → retrieve → answer |
 | `src/lib/gemma.server.ts` | The OpenRouter call (server-only) |
-| `src/lib/rag.ts` | BM25 retrieval over policy sections |
+| `src/lib/rag.ts` | Hybrid BM25 + dense retrieval with RRF fusion |
 | `src/lib/precheck.ts` | Match score, supplier ranking, packet text, wording rules |
 | `src/lib/precheck.test.ts` | Tests for the above |
 | `drizzle/migrations/` | Schema plus all sample data |
+| `evaluation/` | RAGAS live-response collector, references, judge and report runner |
 
 ## Rules this app holds to
 
