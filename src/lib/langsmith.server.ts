@@ -5,7 +5,7 @@ const GATEWAY_URL = "https://connector-gateway.lovable.dev/udc_langsmith";
 
 /** Credentials are supplied only from the server-function handler. No automatic tracing. */
 export async function exportLangsmith(spans: CompletedSpan[], credentials: {
-  gatewayKey?: string; connectionKey?: string;
+  gatewayKey?: string | undefined; connectionKey?: string | undefined;
 }, send: typeof fetch = fetch, sink: (line: string) => void = console.info) {
   if (!credentials.gatewayKey || !credentials.connectionKey) return;
   const batch = langsmithBatch(spans);
