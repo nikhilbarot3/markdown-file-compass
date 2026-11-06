@@ -6,6 +6,11 @@ These IDs are correlation labels, never authorization credentials or durable cha
 
 ## Available tools
 
+- LangSmith: open https://smith.langchain.com and select the project
+  `coverage-precheck-sample` under tracing projects. Requests appear as nested stage
+  traces; the Threads view groups them by `thread_id`. Inputs and outputs are
+  deliberately empty. Token counts and provider IDs are safe metadata when available;
+  native cost accounting is not configured and RAGAS quality scores remain separate.
 - Lovable Cloud server logs: filter `coverage_trace`, a trace UUID, or a conversation UUID.
   Started/ok/error rows include stage, span ID, parent request span, timestamp and elapsed ms.
 - AI Gateway request logs: filter `run_id` with the request trace UUID for embedding calls.
@@ -32,6 +37,25 @@ Section numbers, stage status, model name, provider ID and numeric usage are all
 The gateway has its own retention/redaction controls; this logging does not change them.
 
 Logging is best-effort and cannot guarantee retention. There is no persistent trace table,
-waterfall dashboard, Langfuse/LangSmith export or OpenTelemetry collector integration yet.
+in-app waterfall dashboard, Langfuse export or OpenTelemetry collector integration yet.
 Historical requests cannot be reconstructed. Publish to enable new traces on the live site.
 `VITE_BACKEND_URL` bypasses this built-in pipeline; instrument that external service separately.
+
+## LangSmith connection and export
+
+The linked US-region LangSmith connector holds a workspace-scoped API key. Server calls
+use the connector gateway with `LOVABLE_API_KEY` and `UDC_LANGSMITH_API_KEY`;
+neither credential is sent to the browser. No LangSmith SDK or automatic tracing is used.
+For local runs, configure the same connector gateway credentials securely outside Git.
+EU/APAC or other workspaces need a matching connection; do not point a US key at another region.
+
+Each request collects allowlisted stage records in memory and awaits one `/runs/batch`
+export after completion, including early chat replies and failed requests. Export has a
+three-second deadline and never replaces a coverage result or original application error.
+`coverage_trace_export` logs record only HTTP status and ok/http_error/unavailable.
+No provider error body or exception text is retained. Failed stages use controlled status
+metadata, not native LangSmith error strings. A failed embedding followed by BM25 may
+therefore be a successful root request with an error-status child.
+Export failures are not retried or queued; trace delivery is not guaranteed.
+Removing the connection disables export while existing local logs continue.
+The privacy guarantee applies to this exporter, not other providers' retention policies.
