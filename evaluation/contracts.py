@@ -1,5 +1,23 @@
 """Validation and aggregation without network calls."""
 import math
+import re
+
+
+def relevant_fraction(verdicts):
+    """Unranked precision: relevant chunks / all observed chunks."""
+    if not verdicts or any(type(v) is not int or v not in (0, 1) for v in verdicts):
+        raise ValueError("Expected nonempty binary relevance verdicts")
+    return sum(verdicts) / len(verdicts)
+
+
+def citation_audit(response, contexts):
+    """Check section ID presence only; this is not semantic entailment."""
+    pattern = r"\bSection\s+(\d+(?:\.\d+)+)\b"
+    cited = sorted(set(re.findall(pattern, response, flags=re.I)))
+    available = sorted(set(re.findall(pattern, "\n".join(contexts), flags=re.I)))
+    return {"cited_sections": cited, "observed_sections": available,
+            "missing_sections": sorted(set(cited) - set(available)),
+            "scope": "Section ID presence only, not claim entailment"}
 
 
 def validate_observation(row):

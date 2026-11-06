@@ -128,8 +128,11 @@ What's in them:
 
 ## RAGAS evaluation
 
-Offline evaluation now measures answer faithfulness, policy-context recall and factual
-correctness against six hand-written sample references. It collects actual answers from the
+Offline evaluation now measures answer faithfulness, policy-context recall and unranked
+context precision against six hand-written sample references, with a separate citation-ID
+audit. Precision uses RAGAS chunk relevance judgments with relevant/all aggregation, not
+ranked average precision; correctness F1 is omitted from the current protocol.
+It collects actual answers from the
 running app; it never scores canned answers and does not change the supplier match score.
 See [evaluation/README.md](evaluation/README.md) for installation, live collection, scoring,
 AI-credit requirements and limitations. Generated reports and Python environments belong
